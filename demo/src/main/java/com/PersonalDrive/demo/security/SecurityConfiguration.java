@@ -60,10 +60,10 @@ public class SecurityConfiguration {
         http.csrf(csrf -> csrf.disable());
         http.cors(cors -> cors.configurationSource(request -> {
             CorsConfiguration config = new CorsConfiguration();
-            config.addAllowedOrigin("http://localhost:5173"); // Replace with the correct frontend URL
-            config.addAllowedMethod("*"); // Allow all methods (GET, POST, etc.)
-            config.addAllowedHeader("*"); // Allow all headers
-            config.setAllowCredentials(true); // Allow credentials (e.g., cookies, authorization headers)
+            config.addAllowedOrigin("http://localhost:5173");
+            config.addAllowedMethod("*");
+            config.addAllowedHeader("*");
+            config.setAllowCredentials(true);
             return config;
         }));
 

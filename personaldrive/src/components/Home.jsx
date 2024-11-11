@@ -6,7 +6,7 @@ import { getCookie } from '../utils/cookies';
 export default function Home() {
     const [files, setFiles] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [fileToUpload, setFileToUpload] = useState(null);  // Estado para almacenar el archivo seleccionado
+    const [fileToUpload, setFileToUpload] = useState(null);
 
     useEffect(() => {
         if(!getCookie('jwt')){
@@ -131,7 +131,7 @@ export default function Home() {
                         <input
                             type="text"
                             className="form-control me-2"
-                            placeholder="Buscar archivos..."
+                            placeholder="Search files..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -150,14 +150,14 @@ export default function Home() {
                                         onClick={() => handleDownload(file)}
                                     >
                                         <Download size={18} className="me-1" />
-                                        Descargar
+                                        Download
                                     </button>
                                     <button
                                         className="btn btn-outline-danger"
                                         onClick={() => handleDelete(file.id)}
                                     >
                                         <Trash2 size={18} className="me-1" />
-                                        Eliminar
+                                        Delete
                                     </button>
                                 </div>
                             </div>
