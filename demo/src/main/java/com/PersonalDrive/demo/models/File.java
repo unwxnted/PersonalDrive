@@ -21,5 +21,9 @@ public class File {
     @Getter @Setter @ManyToOne @JoinColumn(name="user_id", nullable = false)
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "folder_id", nullable = true)
+    @Getter @Setter
+    private Folder folder;
 
 }

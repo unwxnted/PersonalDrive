@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Download, Trash2, Upload, Search, Folder } from 'lucide-react';
 import { getCookie } from '../utils/cookies';
+import { redirect } from 'react-router-dom';
 
 export default function Home() {
     const [files, setFiles] = useState([]);
     const [folders, setFolders] = useState([]);
     const [newFolderName, setNewFolderName] = useState('');
-    const [currentFolderId, setCurrentFolderId] = useState(0);
-    const [lastFolderId, setLastFolderId] = useState();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [fileToUpload, setFileToUpload] = useState(null);
@@ -17,28 +16,47 @@ export default function Home() {
         if (!getCookie('jwt')) {
             window.location.href = '/login';
         }
-        fetchContents();
-    }, [currentFolderId]);
+        fetchFiles();
+        fetchFolders();
+    }, []);
 
-    const fetchContents = async () => {
+    const fetchFiles = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/api/folders/${currentFolderId}/contents`, {
+            const response = await fetch('http://localhost:8080/api/files/all', {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${getCookie('jwt')}`,
                 },
                 method: 'GET',
             });
-
             if (response.ok) {
                 const data = await response.json();
-                setFiles(data.files || []);
-                setFolders(data.folders || []);
+                setFiles(data);
             } else {
-                console.error('Failed to fetch folder contents');
+                console.error('Failed to fetch files');
             }
         } catch (error) {
-            console.error('Error fetching folder contents:', error);
+            console.error('Error fetching files:', error);
+        }
+    };
+
+    const fetchFolders = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/folders/home', {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getCookie('jwt')}`,
+                },
+                method: 'GET',
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setFolders(data);
+            } else {
+                console.error('Failed to fetch folders');
+            }
+        } catch (error) {
+            console.error('Error fetching folders:', error);
         }
     };
 
@@ -72,7 +90,7 @@ export default function Home() {
             });
             if (response.ok) {
                 console.log('File deleted successfully');
-                fetchContents();
+                fetchFiles();
             }
         } catch (error) {
             console.error('Error deleting file:', error);
@@ -89,7 +107,7 @@ export default function Home() {
         formData.append('file', fileToUpload);
 
         try {
-            const response = await fetch(`http://localhost:8080/api/files/upload?folderId=${currentFolderId}`, {
+            const response = await fetch(`http://localhost:8080/api/files/upload?folderId=${0}`, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -98,7 +116,7 @@ export default function Home() {
             });
             if (response.ok) {
                 console.log('File uploaded successfully');
-                fetchContents();
+                fetchFiles();
             } else {
                 console.error('Error uploading file');
             }
@@ -109,7 +127,7 @@ export default function Home() {
 
     const handleNewFolder = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/api/folders/create?name=${newFolderName}&parentId=${currentFolderId}`, {
+            const response = await fetch(`http://localhost:8080/api/folders?name=${newFolderName}&parentId=${0}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -119,7 +137,8 @@ export default function Home() {
 
             if (response.ok) {
                 console.log('Folder created successfully');
-                fetchContents();
+                fetchFiles();
+                fetchFolders();
                 setNewFolderName('');
             } else {
                 console.error('Error creating folder');
@@ -127,30 +146,6 @@ export default function Home() {
         } catch (error) {
             console.error('Error creating folder:', error);
         }
-    };
-
-    const handleFolderDelete = async (folderId) => {
-        try {
-            const response = await fetch(`http://localhost:8080/api/folders/${folderId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getCookie('jwt')}`,
-                },
-            });
-            if (response.ok) {
-                console.log('Folder deleted successfully');
-                fetchContents();
-            }
-        } catch (error) {
-            console.error('Error deleting folder:', error);
-        }
-    };
-
-    const handleCurrentFolderUpdate = (folderId) => {
-        setLastFolderId(currentFolderId);
-        setCurrentFolderId(folderId); 
-        fetchContents();
     };
 
     const filteredFiles = files.filter(file =>
@@ -165,23 +160,6 @@ export default function Home() {
         <div className="container-fluid bg-light vh-100 vw-100 p-5">
             <div className="container">
                 <h1 className="mb-4">PersonalDrive</h1>
-
-                {currentFolderId > 0 && <button className='btn btn-outline-secondary m-1' onClick={() => {
-                    handleCurrentFolderUpdate(lastFolderId);
-                }}>
-                    Go back
-                </button>}
-
-                
-                
-                {currentFolderId > 0 && lastFolderId > 0 && <button className='btn btn-outline-primary m-1 ' onClick={() => {
-                    handleCurrentFolderUpdate(0);
-                }}>
-                    Home
-                </button>}
-
-
-                
                 <div className="row mb-4">
                     <div className="col-md-15 mb-3 mb-md-3">
                         <input
@@ -196,25 +174,25 @@ export default function Home() {
                         <input
                             type="file"
                             onChange={(e) => setFileToUpload(e.target.files[0])}
-                            className="form-control me-2 h-auto w-auto"
+                            className="form-control me-2"
                         />
                         <button className="btn btn-primary" onClick={handleUpload}>
                             <Upload size={18} className="me-2" />
-                            Upload
+                            Upload file
                         </button>
                     </div>
-                    <div className="col-md-6 mb-3 mb-md-0 d-flex align-items-center justify-content-end">
+                    <div className="col-md-6 mb-3 mb-md-0 d-flex align-items-center">
                         <input
                             type="text"
-                            placeholder='New folder name'
                             onChange={(e) => setNewFolderName(e.target.value)}
-                            className="form-control me-2 h-auto w-auto"
+                            className="form-control me-2"
                         />
                         <button className="btn btn-primary" onClick={handleNewFolder}>
                             <Upload size={18} className="me-2" />
-                            Folder
+                            New folder
                         </button>
                     </div>
+
                 </div>
                 <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                     {filteredFolders.map((folder) => (
@@ -224,23 +202,11 @@ export default function Home() {
                                     <h5 className="card-title">
                                         <Folder size={18} className="me-2" />
                                         {folder.name}
+                                        <button className='btn btn-outline-primary me-2'
+                                        onClick={() => redirect(`/folder/${folder.id}`)}>
+                                            Enter
+                                        </button>
                                     </h5>
-                                </div>
-                                <div className="card-footer bg-transparent border-top-0">
-                                    <button
-                                        className="btn btn-outline-primary me-2"
-                                        onClick={() => handleCurrentFolderUpdate(folder.id)}
-                                    >
-                                        <Download size={18} className="me-1" />
-                                        Enter
-                                    </button>
-                                    <button
-                                        className="btn btn-outline-danger me-2"
-                                        onClick={() => handleFolderDelete(folder.id)}
-                                    >
-                                        <Trash2 size={18} className="me-1" />
-                                        Delete
-                                    </button>
                                 </div>
                             </div>
                         </div>

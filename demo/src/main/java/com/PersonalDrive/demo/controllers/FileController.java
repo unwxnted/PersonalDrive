@@ -1,9 +1,12 @@
 package com.PersonalDrive.demo.controllers;
 
+import com.PersonalDrive.demo.models.Folder;
 import com.PersonalDrive.demo.models.User;
 import com.PersonalDrive.demo.repositories.FileRepository;
+import com.PersonalDrive.demo.repositories.FolderRepository;
 import com.PersonalDrive.demo.security.JwtTokenProvider;
 import com.PersonalDrive.demo.services.FileService;
+import com.PersonalDrive.demo.services.FolderService;
 import com.PersonalDrive.demo.services.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,13 +49,9 @@ public class FileController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/all")
-    public List<com.PersonalDrive.demo.models.File> getAll(HttpServletRequest req){
-        User user = userService.getById(userService.getByName(jwtTokenProvider.getUserNameFromToken(jwtTokenProvider.resolveToken(req))).getId());
-        List<com.PersonalDrive.demo.models.File> response = fileService.getAll(user);
-        response.stream().forEach(f-> f.getUser().setPassword(null));
-        return response;
-    }
+    @Autowired
+    private FolderService folderService;
+
 
     @GetMapping("/name")
     public ResponseEntity<com.PersonalDrive.demo.models.File> getFileByName(@RequestParam("name") String name, HttpServletRequest req) {
@@ -65,6 +64,7 @@ public class FileController {
 
         return ResponseEntity.notFound().build();
     }
+
 
     @GetMapping("/download")
     public ResponseEntity<Resource> downloadFile(@RequestParam("id") int id, HttpServletRequest req) {
@@ -95,7 +95,7 @@ public class FileController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<?> handleFileUpload(@RequestParam("file") MultipartFile file, HttpServletRequest req) {
+    public ResponseEntity<?> handleFileUpload(@RequestParam("folderId") int folderId, @RequestParam("file") MultipartFile file, HttpServletRequest req) {
         if(file.isEmpty()) {
             return ResponseEntity.badRequest().body("Empty file");
         }
@@ -110,6 +110,12 @@ public class FileController {
             reqFile.setName(file.getOriginalFilename());
             User user = userService.getByName(jwtTokenProvider.getUserNameFromToken(jwtTokenProvider.resolveToken(req)));
             reqFile.setUser(user);
+            if(folderService.findById(folderId).isPresent()) {
+                Optional<Folder> folder = folderService.findById(folderId);
+                reqFile.setFolder(folder.get());
+            }else{
+                reqFile.setFolder(null);
+            }
             fileService.save(reqFile);
             return ResponseEntity.ok().body("File uploaded");
         }catch (IOException e){
