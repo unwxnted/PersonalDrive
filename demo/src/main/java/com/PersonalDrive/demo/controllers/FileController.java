@@ -108,6 +108,7 @@ public class FileController {
             file.transferTo(dest);
             com.PersonalDrive.demo.models.File reqFile = new com.PersonalDrive.demo.models.File();
             reqFile.setName(file.getOriginalFilename());
+            reqFile.setSize(file.getSize());
             User user = userService.getByName(jwtTokenProvider.getUserNameFromToken(jwtTokenProvider.resolveToken(req)));
             reqFile.setUser(user);
             if(folderService.findById(folderId).isPresent()) {

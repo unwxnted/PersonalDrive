@@ -60,6 +60,7 @@ public class FolderService {
                         Map<String, Object> fileMap = new HashMap<>();
                         fileMap.put("id", f.getId());
                         fileMap.put("name", f.getName());
+                        fileMap.put("size", f.getSize());
                         return fileMap;
                     })
                     .collect(Collectors.toList());
@@ -87,6 +88,7 @@ public class FolderService {
                         Map<String, Object> fileMap = new HashMap<>();
                         fileMap.put("id", f.getId());
                         fileMap.put("name", f.getName());
+                        fileMap.put("size", f.getSize());
                         return fileMap;
                     })
                     .collect(Collectors.toList());

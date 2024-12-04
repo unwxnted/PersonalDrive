@@ -152,6 +152,8 @@ export default function Home() {
         setLastFolderId(currentFolderId);
         setCurrentFolderId(folderId); 
         fetchContents();
+        console.log(currentFolderId);
+        console.log(folderId);
     };
 
     const filteredFiles = files.filter(file =>
@@ -253,6 +255,7 @@ export default function Home() {
                                     <h5 className="card-title">{file.name}</h5>
                                 </div>
                                 <div className="card-footer bg-transparent border-top-0">
+                                    <p>Size: {Math.trunc(file.size/1024)} KB</p>
                                     <button
                                         className="btn btn-outline-primary me-2"
                                         onClick={() => handleDownload(file)}

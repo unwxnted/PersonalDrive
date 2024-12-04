@@ -10,6 +10,7 @@ CREATE TABLE users(
 CREATE TABLE files(
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255),
+    size DOUBLE,
     user_id INT NOT NULL,
     folder_id INT,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,

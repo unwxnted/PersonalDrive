@@ -18,6 +18,9 @@ public class File {
     @Getter @Setter @Column(name = "name")
     private String name;
 
+    @Getter @Setter @Column(name = "size")
+    private double size;
+
     @Getter @Setter @ManyToOne @JoinColumn(name="user_id", nullable = false)
     private User user;
 

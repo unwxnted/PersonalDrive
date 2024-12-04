@@ -31,6 +31,7 @@ export default function Home() {
             });
             if (response.ok) {
                 const data = await response.json();
+                console.log(data);
                 setFiles(data);
             } else {
                 console.error('Failed to fetch files');
