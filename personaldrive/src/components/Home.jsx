@@ -102,6 +102,7 @@ export default function Home() {
             } else {
                 console.error('Error uploading file');
             }
+            setFileToUpload(null);
         } catch (error) {
             console.error('Error uploading file:', error);
         }
