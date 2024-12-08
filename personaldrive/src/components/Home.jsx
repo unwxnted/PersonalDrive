@@ -8,7 +8,7 @@ export default function Home() {
     const [folders, setFolders] = useState([]);
     const [newFolderName, setNewFolderName] = useState('');
     const [currentFolderId, setCurrentFolderId] = useState(0);
-    const [lastFolderId, setLastFolderId] = useState();
+    const [lastFolders, setLastFolders] = useState([]);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [fileToUpload, setFileToUpload] = useState(null);
@@ -149,8 +149,13 @@ export default function Home() {
     };
 
     const handleCurrentFolderUpdate = (folderId) => {
-        setLastFolderId(currentFolderId);
-        setCurrentFolderId(folderId); 
+        if(folderId === undefined){
+            setCurrentFolderId(lastFolders[lastFolders.length-1]);
+            setLastFolders(lastFolders.slice(0, lastFolders.length-1));
+        }else{
+            setLastFolders([...lastFolders, currentFolderId]);
+            setCurrentFolderId(folderId);
+        }
         fetchContents();
         console.log(currentFolderId);
         console.log(folderId);
@@ -170,20 +175,10 @@ export default function Home() {
                 <h1 className="mb-4">PersonalDrive</h1>
 
                 {currentFolderId > 0 && <button className='btn btn-outline-secondary m-1' onClick={() => {
-                    handleCurrentFolderUpdate(lastFolderId);
+                    handleCurrentFolderUpdate();
                 }}>
                     Go back
                 </button>}
-
-                
-                
-                {currentFolderId > 0 && lastFolderId > 0 && <button className='btn btn-outline-primary m-1 ' onClick={() => {
-                    handleCurrentFolderUpdate(0);
-                }}>
-                    Home
-                </button>}
-
-
                 
                 <div className="row mb-4">
                     <div className="col-md-15 mb-3 mb-md-3">
