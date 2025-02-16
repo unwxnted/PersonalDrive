@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Download, Trash2, Upload, Search, Folder } from 'lucide-react';
+import { Download, Trash2, Upload, Folder } from 'lucide-react';
 import { getCookie } from '../utils/cookies';
 
 export default function Home() {
@@ -9,14 +9,15 @@ export default function Home() {
     const [newFolderName, setNewFolderName] = useState('');
     const [currentFolderId, setCurrentFolderId] = useState(0);
     const [lastFolders, setLastFolders] = useState([]);
-
     const [searchTerm, setSearchTerm] = useState('');
     const [fileToUpload, setFileToUpload] = useState(null);
+    const [imageUrls, setImageUrls] = useState({});
 
     useEffect(() => {
         if (!getCookie('jwt')) {
             window.location.href = '/login';
         }
+        
         fetchContents();
     }, [currentFolderId]);
 
@@ -29,6 +30,8 @@ export default function Home() {
                 },
                 method: 'GET',
             });
+
+            
 
             if (response.ok) {
                 const data = await response.json();
@@ -149,17 +152,45 @@ export default function Home() {
     };
 
     const handleCurrentFolderUpdate = (folderId) => {
-        if(folderId === undefined){
-            setCurrentFolderId(lastFolders[lastFolders.length-1]);
-            setLastFolders(lastFolders.slice(0, lastFolders.length-1));
-        }else{
+        if (folderId === undefined) {
+            setCurrentFolderId(lastFolders[lastFolders.length - 1]);
+            setLastFolders(lastFolders.slice(0, lastFolders.length - 1));
+        } else {
             setLastFolders([...lastFolders, currentFolderId]);
             setCurrentFolderId(folderId);
         }
         fetchContents();
-        console.log(currentFolderId);
-        console.log(folderId);
     };
+
+    const fetchImage = async (file) => {
+        if (file.name.includes('jpg') || file.name.includes('jpeg') || file.name.includes('png')) {
+            try {
+                const response = await fetch(`http://localhost:8080/api/files/download?id=${file.id}`, {
+                    headers: {
+                        "Authorization": `Bearer ${getCookie('jwt')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch image');
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                setImageUrls(prev => ({ ...prev, [file.id]: url }));
+            } catch (err) {
+                console.error('Error fetching image:', err);
+            }
+        }
+    };
+
+    useEffect(() => {
+        files.forEach(file => {
+            if (file.name.includes('jpg') || file.name.includes('jpeg') || file.name.includes('png')) {
+                fetchImage(file);
+            }
+        });
+    }, [files]);
 
     const filteredFiles = files.filter(file =>
         file.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -179,7 +210,7 @@ export default function Home() {
                 }}>
                     Go back
                 </button>}
-                
+
                 <div className="row mb-4">
                     <div className="col-md-15 mb-3 mb-md-3">
                         <input
@@ -247,10 +278,13 @@ export default function Home() {
                         <div key={file.id} className="col">
                             <div className="card h-100">
                                 <div className="card-body">
+                                    {(file.name.includes('jpg') || file.name.includes('jpeg') || file.name.includes('png')) && (
+                                        <img src={imageUrls[file.id]} alt={file.name} style={{ maxWidth: '100%', height: 'auto', padding: '5px' }} />
+                                    )}
                                     <h5 className="card-title">{file.name}</h5>
                                 </div>
                                 <div className="card-footer bg-transparent border-top-0">
-                                    <p>Size: {Math.trunc(file.size/1024)} KB</p>
+                                    <p>Size: {Math.trunc(file.size / 1024)} KB</p>
                                     <button
                                         className="btn btn-outline-primary me-2"
                                         onClick={() => handleDownload(file)}
