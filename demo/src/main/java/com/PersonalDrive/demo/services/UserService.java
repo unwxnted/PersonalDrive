@@ -24,8 +24,13 @@ public class UserService {
     }
 
     public User getByName(String name){
-        List<User> result = userRepository.findByName(name);
-        return result.getFirst();
+        try{
+            List<User> result = userRepository.findByName(name);
+            return result.getFirst();
+        }catch (Exception e){
+            return null;
+        }
+
     }
 
     public boolean registerUser(User user){

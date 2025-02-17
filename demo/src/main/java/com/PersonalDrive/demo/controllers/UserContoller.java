@@ -6,8 +6,7 @@ import com.PersonalDrive.demo.services.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -53,7 +52,6 @@ public class UserContoller {
                 "&access_type=offline" +
                 "&prompt=consent";
 
-        System.out.println(authorizationUrl);
         Map<String, String> response = new HashMap<>();
         response.put("url", authorizationUrl);
         return response;
@@ -76,16 +74,33 @@ public class UserContoller {
         if (tokenResponse.getStatusCode() == HttpStatus.OK) {
             String accessToken = (String) tokenResponse.getBody().get("access_token");
 
-            String jwtToken = jwtTokenProvider.generateTokenFromGoogleToken(accessToken);
+            String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
 
-            System.out.println("here");
-            System.out.println(jwtToken);
-            String frontendUrl = "http://localhost:5173/register?code=" + jwtToken;
-            User user = new User();
-            user.setName(accessToken);
-            user.setPassword(code);
-            userService.registerUser(user);
-            response.sendRedirect(frontendUrl);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(accessToken);
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            ResponseEntity<Map> userInfoResponse = restTemplate.exchange(userInfoUrl, HttpMethod.GET, entity, Map.class);
+
+            if(userInfoResponse.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> userInfo = userInfoResponse.getBody();
+                String email = (String) userInfo.get("email");
+                String googleId = (String) userInfo.get("id");
+
+                User user = new User();
+                user.setName(email);
+                user.setPassword(googleId);
+
+                if(userService.getByName(email) == null){
+                    userService.registerUser(user);
+                }
+
+                String jwtToken = jwtTokenProvider.generateToken(user);
+                String frontendUrl = "http://localhost:5173/register?code=" + jwtToken;
+
+                response.sendRedirect(frontendUrl);
+            }
+
         } else {
             response.sendError(HttpStatus.UNAUTHORIZED.value(), "Error during authentication");
         }

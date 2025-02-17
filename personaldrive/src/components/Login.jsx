@@ -49,7 +49,7 @@ export default function Login() {
     const handleOauth = async (e) => {
         e.preventDefault();
 
-        const response = await fetch('http://localhost:8080/api/users/google/url/login');
+        const response = await fetch('http://localhost:8080/api/users/google/url');
         const data = await response.json();
 
         window.location.href = data.url;
