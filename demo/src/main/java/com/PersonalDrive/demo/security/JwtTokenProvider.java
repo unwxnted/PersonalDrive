@@ -36,18 +36,6 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public String generateTokenFromGoogleToken(String googleToken) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + 3600000);
-
-        return Jwts.builder()
-                .setSubject(googleToken)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, secretKey)
-                .compact();
-    }
-
     public String resolveToken(HttpServletRequest req) {
         String bearerToken = req.getHeader("Authorization");
         if (bearerToken!= null && bearerToken.startsWith("Bearer ")) {

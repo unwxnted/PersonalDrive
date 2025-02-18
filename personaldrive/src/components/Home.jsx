@@ -17,7 +17,7 @@ export default function Home() {
         if (!getCookie('jwt')) {
             window.location.href = '/login';
         }
-        
+
         fetchContents();
     }, [currentFolderId]);
 
@@ -31,7 +31,7 @@ export default function Home() {
                 method: 'GET',
             });
 
-            
+
 
             if (response.ok) {
                 const data = await response.json();
@@ -203,7 +203,10 @@ export default function Home() {
     return (
         <div className="container-fluid bg-light vh-100 vw-100 p-5">
             <div className="container">
-                <h1 className="mb-4">PersonalDrive</h1>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h1>PersonalDrive</h1>
+                    <button className="btn btn-outline-danger">Logout</button>
+                </div>
 
                 {currentFolderId > 0 && <button className='btn btn-outline-secondary m-1' onClick={() => {
                     handleCurrentFolderUpdate();
@@ -245,10 +248,10 @@ export default function Home() {
                         </button>
                     </div>
                 </div>
-                <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                <div className="row row-cols-1 row-cols-lg-3 g-3">
                     {filteredFolders.map((folder) => (
                         <div key={folder.id} className="col">
-                            <div className="card h-100">
+                            <div className="card">
                                 <div className="card-body">
                                     <h5 className="card-title">
                                         <Folder size={18} className="me-2" />
@@ -276,7 +279,7 @@ export default function Home() {
                     ))}
                     {filteredFiles.map((file) => (
                         <div key={file.id} className="col">
-                            <div className="card h-100">
+                            <div className="card h-80">
                                 <div className="card-body">
                                     {(file.name.includes('jpg') || file.name.includes('jpeg') || file.name.includes('png')) && (
                                         <img src={imageUrls[file.id]} alt={file.name} style={{ maxWidth: '100%', height: 'auto', padding: '5px' }} />
